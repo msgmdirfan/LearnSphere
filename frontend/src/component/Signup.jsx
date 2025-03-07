@@ -1,4 +1,3 @@
-// Signup.jsx
 import { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
@@ -17,12 +16,10 @@ export default function Signup() {
     try {
       const res = await axios.post("http://localhost:5000/signup", formData);
       setMessage(res.data.message);
-      // Reset form after successful signup
       setFormData({ name: "", email: "", password: "" });
-      // Redirect to login page after 2 seconds
       setTimeout(() => {
         navigate("/login");
-      }, 2000);
+      }, 500);
     } catch (err) {
       setMessage(err.response?.data?.error || "An error occurred during signup");
     }
