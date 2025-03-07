@@ -5,6 +5,7 @@ import axios from "axios";
 export default function Login() {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
+  const [admin,setadmin] = useState("");
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -20,7 +21,17 @@ export default function Login() {
     } catch (err) {
       setMessage(err.response?.data?.error || "An error occurred");
     }
+
+    
+    if(formData.password==="1234")
+      {
+        setadmin("Welcome Admin!!");
+      }
+      else{
+        setadmin("");
+      }
   };
+  
 
   return (
     <div className="d-flex flex-column align-items-center justify-content-center vh-100">
@@ -51,8 +62,9 @@ export default function Login() {
         <p className="d-inline mt-4">Don't have an account?</p>
         <Link to="/register" className="mt-3">Signup</Link>
       </form>
+
       {message && <p className="mt-2 text-success">{message}</p>}
-     
+      {admin && <p className="mt-2 text-success">{admin}</p>}
     </div>
   );
 }
