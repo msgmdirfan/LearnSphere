@@ -1,3 +1,4 @@
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -9,20 +10,27 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+
 app.use(cors());
 app.use(bodyParser.json());
 
+
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => console.log("MongoDB Connected Successfully"))
   .catch((err) => console.error("MongoDB Connection Error:", err));
 
+
 const userSchema = new mongoose.Schema({
-  name: String,
-  email: { type: String, unique: true },
-  password: String,
- 
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
 });
+
 
 const courseschema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -51,21 +59,37 @@ const lectureschema = new mongoose.Schema({
   instructor: { type: String, required: true },
 });
 
+
 const User = mongoose.models.user || mongoose.model("user", userSchema);
 const Enroll = mongoose.models.enroll || mongoose.model("enroll", enrollschema);
 const Course = mongoose.models.course || mongoose.model("course", courseschema);
 const Lecture = mongoose.models.lecture || mongoose.model("lecture", lectureschema);
 
+
 app.post("/signup", async (req, res) => {
-  const { name, email, password, role } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const { name, email, password } = req.body;
 
   try {
-    const newUser = new User({ name, email, password: hashedPassword, role });
+    
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: "Email already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = new User({
+      name,
+      email,
+      password: hashedPassword,
+    });
+
     await newUser.save();
+
     res.status(201).json({ message: "User created successfully" });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error("Signup error:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -77,8 +101,8 @@ app.post("/login", async (req, res) => {
   const isMatch = await bcrypt.compare(password, user.password);
 
   if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
-  const token = jwt.sign({ id: user._id, role: user.role }, "secretkey", { expiresIn: "1h" });
-  res.json({ token, role: user.role });
+  const token = jwt.sign({ id: user._id }, "secretkey", { expiresIn: "1h" });
+  res.json({ token });
 });
 
 app.get("/users", async (req, res) => {
