@@ -7,7 +7,6 @@ export default function VideoPlayer() {
   const embedUrl = videourl ? videourl.replace("youtu.be/", "www.youtube.com/embed/") + "?autoplay=1" : "";
   console.log(embedUrl);
 
-  // Sample quiz questions
   const quizQuestions = [
     {
       question: "What is the main topic of this video?",
@@ -21,7 +20,6 @@ export default function VideoPlayer() {
     },
   ];
 
-  // Sample reference links
   const referenceLinks = [
     {
       title: "React Documentation",
@@ -39,7 +37,6 @@ export default function VideoPlayer() {
 
   return (
     <div className="container my-5">
-      {/* Video Player Section */}
       <div className="text-center mb-5">
         <h2 className="text-primary mb-4">Course Video</h2>
         <div style={{ maxWidth: "800px", margin: "0 auto" }}>
@@ -55,7 +52,6 @@ export default function VideoPlayer() {
         </div>
       </div>
 
-      {/* Quiz Section */}
       <div className="mb-5">
         <h3 className="text-primary mb-4">Quiz</h3>
         <div className="row g-4">
@@ -87,7 +83,6 @@ export default function VideoPlayer() {
         </div>
       </div>
 
-      {/* Reference Links Section */}
       <div>
         <h3 className="text-primary mb-4">Reference Links</h3>
         <div className="list-group">
