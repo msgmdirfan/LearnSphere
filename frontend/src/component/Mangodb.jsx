@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 
 export default function Mangodb() {
   const {id}=useParams();
+    const token=localStorage.getItem("token");
 
   const[enroll,setEnroll]=useState([]);
   const fetchenroll=async()=>{
@@ -50,9 +51,17 @@ export default function Mangodb() {
             <p>{item.foot}</p>
             <h5>Key Learning Outcomes:</h5>
             <div dangerouslySetInnerHTML={{ __html: item.list }} />
-            <Link to={`/detail/${item.id}`}>
+            {
+              token?
+              <Link to={`/detail/${item.id}`}>
               <button className="btn btn-outline-primary">Enroll Now</button>
             </Link>
+              :
+              <Link to={`/login`}>
+              <button className="btn btn-outline-primary">Login To Enroll Now</button>
+            </Link>
+            }
+            
           </div>
         </div>
       </div>

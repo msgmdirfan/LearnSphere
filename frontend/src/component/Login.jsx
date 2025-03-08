@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link ,useNavigate} from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
 
@@ -6,7 +6,7 @@ export default function Login() {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
   const [admin, setAdmin] = useState("");
-
+const navigate=useNavigate();
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -18,8 +18,9 @@ export default function Login() {
       setMessage("Login Successful");
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.role);
-
-      // Check if the user is an admin only after successful login
+      navigate("/");
+      window.location.reload();
+      
       if (formData.password === "1234") {
         setAdmin("Welcome Admin!!");
       } else {
@@ -27,7 +28,7 @@ export default function Login() {
       }
     } catch (err) {
       setMessage(err.response?.data?.error || "An error occurred");
-      setAdmin(""); // Ensure admin message doesn't show on failed login
+      setAdmin(""); 
     }
   };
 

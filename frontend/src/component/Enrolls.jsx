@@ -7,7 +7,6 @@ import VideoPlayer from './VideoPlayer';
 export default function Enrolls() {
     const { id } = useParams();
     const [lecture, setLecture] = useState([]);
-
     useEffect(() => {
         const fetchLecture = async () => {
             try {
