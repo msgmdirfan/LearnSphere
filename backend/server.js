@@ -114,7 +114,7 @@ app.get("/users", async (req, res) => {
   }
 });
 
-app.get("/lecture", async (req, res) => {
+app.get("/lectures", async (req, res) => {
   try {
     const lecture = await Lecture.find({});
     res.json(lecture);

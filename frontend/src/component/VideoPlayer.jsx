@@ -1,39 +1,79 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import axios from "axios";
+
+const normalizeYouTubeUrl = (url) => {
+  let videoId = "";
+  if (url.includes("youtu.be/")) {
+    videoId = url.split("youtu.be/")[1].split("?")[0]; 
+  } else if (url.includes("youtube.com/watch?v=")) {
+    videoId = url.split("v=")[1].split("&")[0];
+  } else if (url.includes("youtube.com/embed/")) {
+    videoId = url.split("embed/")[1].split("?")[0]; 
+  }
+  return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1` : "";
+};
 
 export default function VideoPlayer() {
   const { url } = useParams();
-  const videourl = decodeURIComponent(url);
-  const embedUrl = videourl ? videourl.replace("youtu.be/", "www.youtube.com/embed/") + "?autoplay=1" : "";
+  const videourl = decodeURIComponent(url || ""); 
+  const embedUrl = normalizeYouTubeUrl(videourl);
   console.log(embedUrl);
 
-  const quizQuestions = [
-    {
-      question: "What is the main topic of this video?",
-      options: ["React", "JavaScript", "Bootstrap", "Node.js"],
-      correctAnswer: "React",
-    },
-    {
-      question: "Which hook is used to access URL parameters in React?",
-      options: ["useState", "useEffect", "useParams", "useContext"],
-      correctAnswer: "useParams",
-    },
-  ];
+  const [lectures, setLectures] = useState([]);
+  const [quizQuestions, setQuizQuestions] = useState([]);
+  const [referenceLinks, setReferenceLinks] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const referenceLinks = [
-    {
-      title: "React Documentation",
-      url: "https://reactjs.org/docs/getting-started.html",
-    },
-    {
-      title: "Bootstrap Documentation",
-      url: "https://getbootstrap.com/docs/5.3/getting-started/introduction/",
-    },
-    {
-      title: "React Router Documentation",
-      url: "https://reactrouter.com/en/main",
-    },
-  ];
+  const fetchLectures = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/lectures");
+      if (response.data) {
+        setLectures(response.data);
+      }
+    } catch (err) {
+      console.error("Error fetching lectures:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLectures();
+  }, []);
+
+  useEffect(() => {
+    if (lectures.length > 0) {
+      let foundQuiz = [];
+      let foundReferenceLink = null;
+
+      for (const lecture of lectures) {
+        const topic = lecture.topics.find((t) => t.videoUrl === videourl);
+        if (topic) {
+          foundQuiz = topic.quiz || [];
+          foundReferenceLink = topic.referenceLink;
+          break;
+        }
+        const additionalTopic = lecture.additionalTopics.find((t) => t.videoUrl === videourl);
+        if (additionalTopic) {
+          foundQuiz = additionalTopic.quiz || [];
+          foundReferenceLink = additionalTopic.referenceLink;
+          break;
+        }
+      }
+
+      setQuizQuestions(foundQuiz);
+      setReferenceLinks(foundReferenceLink ? [foundReferenceLink] : []);
+    }
+  }, [lectures, videourl]);
+
+  if (!embedUrl) {
+    return (
+      <div className="container my-5">
+        <h2 className="text-center text-danger">Invalid or missing video URL</h2>
+      </div>
+    );
+  }
 
   return (
     <div className="container my-5">
@@ -54,51 +94,63 @@ export default function VideoPlayer() {
 
       <div className="mb-5">
         <h3 className="text-primary mb-4">Quiz</h3>
-        <div className="row g-4">
-          {quizQuestions.map((quiz, index) => (
-            <div key={index} className="col-md-6">
-              <div className="card shadow-sm">
-                <div className="card-body">
-                  <h5 className="card-title">Question {index + 1}</h5>
-                  <p className="card-text">{quiz.question}</p>
-                  <ul className="list-group list-group-flush">
-                    {quiz.options.map((option, i) => (
-                      <li key={i} className="list-group-item">
-                        <input
-                          type="radio"
-                          name={`question-${index}`}
-                          id={`option-${index}-${i}`}
-                          className="form-check-input me-2"
-                        />
-                        <label htmlFor={`option-${index}-${i}`} className="form-check-label">
-                          {option}
-                        </label>
-                      </li>
-                    ))}
-                  </ul>
+        {loading ? (
+          <p className="text-muted">Loading quiz questions...</p>
+        ) : quizQuestions.length > 0 ? (
+          <div className="row g-4">
+            {quizQuestions.map((quiz, index) => (
+              <div key={index} className="col-md-6">
+                <div className="card shadow-sm">
+                  <div className="card-body">
+                    <h5 className="card-title">Question {index + 1}</h5>
+                    <p className="card-text">{quiz.question}</p>
+                    <ul className="list-group list-group-flush">
+                      {quiz.options.map((option, i) => (
+                        <li key={i} className="list-group-item">
+                          <input
+                            type="radio"
+                            name={`question-${index}`}
+                            id={`option-${index}-${i}`}
+                            className="form-check-input me-2"
+                          />
+                          <label htmlFor={`option-${index}-${i}`} className="form-check-label">
+                            {option}
+                          </label>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-muted">No quiz questions available for this video.</p>
+        )}
       </div>
 
       <div>
         <h3 className="text-primary mb-4">Reference Links</h3>
-        <div className="list-group">
-          {referenceLinks.map((link, index) => (
-            <a
-              key={index}
-              href={link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-            >
-              {link.title}
-              <span className="badge bg-primary rounded-pill">Visit</span>
-            </a>
-          ))}
-        </div>
+        {loading ? (
+          <p className="text-muted">Loading reference links...</p>
+        ) : referenceLinks.length > 0 ? (
+          <div className="list-group">
+            {referenceLinks.map((link, index) => (
+              <a
+                key={index}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+              >
+                {link.title || "Reference Link"} 
+                <span className="badge bg-primary rounded-pill">Visit</span>
+              </a>
+            ))}
+          </div>
+        ) : (
+          <p className="text-muted">No reference links available for this video.</p>
+        )}
       </div>
     </div>
   );
