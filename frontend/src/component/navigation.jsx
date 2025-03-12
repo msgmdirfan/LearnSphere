@@ -7,20 +7,26 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 function Navigate() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
-  // Check for token in localStorage on component mount
+  // Check login and admin status on component mount
   useEffect(() => {
     const token = localStorage.getItem("token");
-    setIsLoggedIn(!!token); // Convert token existence to boolean
+    const adminStatus = localStorage.getItem("isAdmin") === "true";
+
+    setIsLoggedIn(!!token); // True if token exists, false otherwise
+    setIsAdmin(token && adminStatus); // Only true if both token exists AND isAdmin is true
   }, []);
 
   // Logout function
   const handleLogout = () => {
-    localStorage.removeItem("token"); // Remove token
-    localStorage.removeItem("role");  // Optional: Remove role if stored
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("isAdmin");
     setIsLoggedIn(false);
-    navigate("/login"); // Redirect to login page after logout
+    setIsAdmin(false);
+    navigate("/login");
   };
 
   return (
@@ -38,7 +44,11 @@ function Navigate() {
             <Nav.Link as={Link} to="/home" className='fs-5 text-primary mx-2 fw-semibold nav-hover'>Home</Nav.Link>
             <Nav.Link as={Link} to="/course" className='fs-5 text-primary mx-2 fw-semibold nav-hover'>Courses</Nav.Link>
             <Nav.Link as={Link} to="/about" className='fs-5 text-primary mx-2 fw-semibold nav-hover'>About</Nav.Link>
-            <Nav.Link as={Link} to="/admin" className='fs-5 text-primary mx-2 fw-semibold nav-hover'>Admin</Nav.Link>
+            
+            {/* Show Admin link only if user is logged in AND is an admin */}
+            {isLoggedIn && isAdmin && (
+              <Nav.Link as={Link} to="/admin" className='fs-5 text-primary mx-2 fw-semibold nav-hover'>Admin</Nav.Link>
+            )}
 
             {/* Show Login or Logout based on authentication status */}
             {isLoggedIn ? (
