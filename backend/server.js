@@ -33,10 +33,11 @@ const userSchema = new mongoose.Schema({
 
 
 const courseschema = new mongoose.Schema({
+  id:{type:String,required:true},
   name: { type: String, required: true },
   description: { type: String, required: true },
   url: { type: String, required: true },
-  link: { type: String, required: true },
+ 
 });
 
 const enrollschema = new mongoose.Schema({
@@ -47,23 +48,55 @@ const enrollschema = new mongoose.Schema({
   list: { type: String, required: true },
 });
 
-const lectureschema = new mongoose.Schema({
+const lectureSchema = new mongoose.Schema({
   id: { type: String, required: true },
   summary: { type: String, required: true },
   url: { type: String, required: true },
-  topics: [{ title: { type: String, required: true }, videoUrl: { type: String, required: true } }],
-  additionalTopics: [{ title: { type: String, required: true }, videoUrl: { type: String, required: true } }],
+  topics: [
+    {
+      title: { type: String, required: true },
+      videoUrl: { type: String, required: true },
+      quiz: [
+        {
+          question: { type: String, required: true },
+          options: [{ type: String, required: true }], // Array of strings for options
+          correctAnswer: { type: String, required: true }
+        }
+      ],
+      referenceLink: {
+        title: { type: String, required: true },
+        url: { type: String, required: true }
+      }
+    }
+  ],
+  additionalTopics: [
+    {
+      title: { type: String, required: true },
+      videoUrl: { type: String, required: true },
+      quiz: [
+        {
+          question: { type: String, required: true },
+          options: [{ type: String, required: true }], // Array of strings for options
+          correctAnswer: { type: String, required: true }
+        }
+      ],
+      referenceLink: {
+        title: { type: String, required: true },
+        url: { type: String, required: true }
+      }
+    }
+  ],
   totalDuration: { type: String, required: true },
-  originalCost: { type: String },
+  originalCost: { type: String }, // Optional, as in the original schema
   discountCost: { type: String, required: true },
-  instructor: { type: String, required: true },
+  instructor: { type: String, required: true }
 });
 
 
 const User = mongoose.models.user || mongoose.model("user", userSchema);
 const Enroll = mongoose.models.enroll || mongoose.model("enroll", enrollschema);
 const Course = mongoose.models.course || mongoose.model("course", courseschema);
-const Lecture = mongoose.models.lecture || mongoose.model("lecture", lectureschema);
+const Lecture = mongoose.models.lecture || mongoose.model("lecture", lectureSchema);
 
 
 app.post("/signup", async (req, res) => {
@@ -103,7 +136,7 @@ app.post("/login", async (req, res) => {
   if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
   const token = jwt.sign({ id: user._id }, "secretkey", { expiresIn: "1h" });
   res.json({ token });
-});
+}); 
 
 app.get("/users", async (req, res) => {
   try {
@@ -144,6 +177,49 @@ app.get("/courses", async (req, res) => {
   }
 });
 
+app.post("/addcourses",async(req,res)=>{
+  const{formData}=req.body;
+  console.log(formData);
+  try{
+    const result=await Course.insertMany(formData);
+    res.json({success:true});
+  }
+  catch(err){ 
+    console.log(err);
+  }
+});
+
+
+app.post("/addlecture",async(req,res)=>{
+  console.log(req.body);
+  try{
+    await Lecture.insertMany(req.body);
+    res.json({success:true});
+  }
+  catch(err){
+    console.log(err);
+  }
+});
+
+
+app.post("/enrolls",async(req,res)=>{
+
+  const{formData2}=req.body;
+  try{
+    const result=await Enroll.insertMany(formData2);
+    res.json({success:true});
+  }
+  catch(err){
+
+    console.log(err);
+
+  }
+
+});
+
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
+

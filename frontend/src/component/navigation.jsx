@@ -38,6 +38,7 @@ function Navigate() {
             <Nav.Link as={Link} to="/home" className='fs-5 text-primary mx-2 fw-semibold nav-hover'>Home</Nav.Link>
             <Nav.Link as={Link} to="/course" className='fs-5 text-primary mx-2 fw-semibold nav-hover'>Courses</Nav.Link>
             <Nav.Link as={Link} to="/about" className='fs-5 text-primary mx-2 fw-semibold nav-hover'>About</Nav.Link>
+            <Nav.Link as={Link} to="/admin" className='fs-5 text-primary mx-2 fw-semibold nav-hover'>Admin</Nav.Link>
 
             {/* Show Login or Logout based on authentication status */}
             {isLoggedIn ? (
